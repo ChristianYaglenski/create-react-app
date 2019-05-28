@@ -398,11 +398,16 @@ function prepareProxy(proxy, appPublicFolder) {
       // If this heuristic doesn’t work well for you, use `src/setupProxy.js`.
       context: function(pathname, req) {
         return (
-          req.method !== 'GET' ||
-          (mayProxy(pathname) &&
-            req.headers.accept &&
-            req.headers.accept.indexOf('text/html') === -1)
-        );
+          // Resolves an issue with WebSocket (#5280).
+           (!pathname.startsWith("/sockjs-node/") &&
+             req.upgrade &&
+             req.headers.upgrade &&
+             req.headers.upgrade.toLowerCase() === 'websocket') ||
+           req.method !== 'GET' ||
+           (mayProxy(pathname) &&
+             req.headers.accept &&
+             req.headers.accept.indexOf('text/html') === -1)
+         );
       },
       onProxyReq: proxyReq => {
         // Browsers may send Origin headers even with same-origin
